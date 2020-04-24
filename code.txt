@@ -1,0 +1,6 @@
+;Print Hello World 10 times
+~#abc.* >Hello_World!
+
+
+#abc-1
+($abc$|0) end
