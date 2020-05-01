@@ -1,4 +1,5 @@
 from typing import List, Union
+from Token import Token
 
 #    '\-?[0-9]+'     : 'INTEGER',
 #    '[a-zA-Z0-9]+'  : 'IDENTIFIER',
@@ -29,7 +30,34 @@ the tokens in the instructions are not separated with a space or something.
 
 class Nine_Lexer(object):
     def __init__(self):
-        self.token_dict = {
+        pass
+
+    # returns the identifier.
+    # instruction_to_identifier :: [Char] -> [Char]
+    def instruction_to_identifier(self, instruction : str) -> str:
+        if instruction == []:
+            return ''
+        head, *tail = instruction
+        if head in ['.', '+', '-', ' ', '$']:
+            return ''
+        if head == '_':
+            head = ' '
+        return head + self.instruction_to_identifier(tail)
+
+    # instruction_to_interger :: [Char] -> [Char]
+    def instruction_to_interger(self, instruction : str) -> str:
+        if instruction == []:
+            return ''
+        head, *tail = instruction
+        if head.isdigit():
+            return head + self.instruction_to_interger(tail)
+        else: #error??
+            return ''
+
+    # returns tokens of instructions
+    # instruction_to_tokens :: [Char] -> [String]
+    def instruction_to_tokens(self, instruction : str) -> List[str]:
+        token_dict = {
             '#'         : 'VARIABLE',
             '.'         : 'ASSIGN',
             '+'         : 'ADD',
@@ -43,58 +71,33 @@ class Nine_Lexer(object):
             '('         : 'LPAREN',
             ')'         : 'RPAREN',
             '|'         : 'NOT_EQUAL',          #Changed! A|B -> A != B
-            '%'         : 'NOT_MOD',          #Changed! A%B -> A % B != 0
+            '%'         : 'NOT_MOD',            #Changed! A%B -> A % B != 0
             ';'         : 'COMMENT',
             '~'         : 'RUN_ONCE',
         }
 
-    # returns the identifier.
-    # instruction_to_identifier :: [Char] -> [Char]
-    def instruction_to_identifier(self, instruction: str) -> str:
-        if instruction == []:
-            return ''
-        head, *tail = instruction
-        if head in ['.', '+', '-', ' ', '$']:
-            return ''
-        if head == '_':
-            head = ' '
-        return head + self.instruction_to_identifier(tail)
-
-    # instruction_to_interger :: [Char] -> [Char]
-    def instruction_to_interger(self, instruction: str) -> str:
-        if instruction == []:
-            return ''
-        head, *tail = instruction
-        if head.isdigit():
-            return head + self.instruction_to_interger(tail)
-        else: #error??
-            return ''
-
-    # returns tokens of instructions
-    # instruction_to_tokens :: [Char] -> [String]
-    def instruction_to_tokens(self, instruction : str) -> List[str]:
         if instruction == 'end':
-            return [self.token_dict[instruction]]
+            return [Token(token_dict[instruction], instruction)]
         if instruction == [] or instruction == '':
             return []
         head, *tail = instruction
         # separated if statement becease * is used as input as print wo nl
         if head == '.' and tail[0] == '*':
-            return [self.token_dict[head], 'INPUT']
+            return [Token(token_dict[head], head), Token('INPUT', tail[0])]
         # if head char is a token add token
         # else add interger or identifier
-        if head in self.token_dict.keys():
-            return [self.token_dict[head]] + self.instruction_to_tokens(tail)
+        if head in token_dict.keys():
+            return [Token(token_dict[head], head)] + self.instruction_to_tokens(tail)
         elif head.isdigit():
             interger = self.instruction_to_interger(instruction)
-            return [interger] + self.instruction_to_tokens(instruction[len(interger):])
+            return [Token('INTERGER', interger)] + self.instruction_to_tokens(instruction[len(interger):])
         else:
             identifier = self.instruction_to_identifier(instruction)
-            return [identifier] + self.instruction_to_tokens(instruction[len(identifier):])
+            return [Token('IDENTIFIER', identifier)] + self.instruction_to_tokens(instruction[len(identifier):])
 
     # returns tokens of a line
     # line_to_token :: [Char] -> [String]
-    def line_to_tokens(self, line : str) -> Union[List[str], int]:
+    def line_to_tokens(self, line : str) -> List[str]:
         if line == []:
             return []
         end = line.find(' ')
@@ -114,5 +117,5 @@ class Nine_Lexer(object):
             if len(line) == 0 or line[0] == ';':  # commentsymbol or empty ignore line
                 return self.text_to_tokens(tail)
             else:
-                return self.line_to_tokens(line) + self.text_to_tokens(tail) #['LINE_DOWN'] + self.text_to_tokens(tail)
+                return self.line_to_tokens(line) + [Token('LINE_DOWN', '!')] + self.text_to_tokens(tail)
         return self.line_to_tokens(text) #last line of text
