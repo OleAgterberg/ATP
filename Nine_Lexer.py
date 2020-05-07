@@ -38,13 +38,13 @@ class Nine_Lexer(object):
         if instruction == []:
             return ''
         head, *tail = instruction
-        if head in ['.', '+', '-', ' ', '$']:
+        if head in ['.', '+', '-', ' ', '$', '*', '(', ')', '|']:
             return ''
         if head == '_':
             head = ' '
         return head + self.instruction_to_identifier(tail)
 
-    # instruction_to_interger :: [Char] -> [Char]
+    # instruction_to_interger :: String -> String
     def instruction_to_interger(self, instruction : str) -> str:
         if instruction == []:
             return ''
@@ -55,8 +55,8 @@ class Nine_Lexer(object):
             return ''
 
     # returns tokens of instructions
-    # instruction_to_tokens :: [Char] -> [String]
-    def instruction_to_tokens(self, instruction : str) -> List[str]:
+    # instruction_to_tokens :: String -> [Token]
+    def instruction_to_tokens(self, instruction : str) -> List[Token]:
         token_dict = {
             '#'         : 'VARIABLE',
             '.'         : 'ASSIGN',
@@ -65,13 +65,13 @@ class Nine_Lexer(object):
             '.*'        : 'INPUT',
             '$'  	    : 'CALL',
             '>'         : 'PRINT',
-            '*'         : 'PRINT_WO_NL',          #Without new line
-            '!'         : 'LINE_DOWN',
+            '*'         : 'PRINT_WO_NL',        # Without new line
+            '!'         : 'LINE_DOWN',          # Changed !! -> Skip Next Line
             'end'       : 'END',
             '('         : 'LPAREN',
             ')'         : 'RPAREN',
-            '|'         : 'NOT_EQUAL',          #Changed! A|B -> A != B
-            '%'         : 'NOT_MOD',            #Changed! A%B -> A % B != 0
+            '|'         : 'NOT_EQUAL',          # Changed !! ->  A|B -> A != B
+            '%'         : 'NOT_MOD',            # Changed !! ->  A%B -> A % B != 0
             ';'         : 'COMMENT',
             '~'         : 'RUN_ONCE',
         }
@@ -84,6 +84,8 @@ class Nine_Lexer(object):
         # separated if statement becease * is used as input as print wo nl
         if head == '.' and tail[0] == '*':
             return [Token(token_dict[head], head), Token('INPUT', tail[0])]
+        if head == '*':
+            return [Token(token_dict[head], head)]
         # if head char is a token add token
         # else add interger or identifier
         if head in token_dict.keys():
@@ -96,8 +98,8 @@ class Nine_Lexer(object):
             return [Token('IDENTIFIER', identifier)] + self.instruction_to_tokens(instruction[len(identifier):])
 
     # returns tokens of a line
-    # line_to_token :: [Char] -> [String]
-    def line_to_tokens(self, line : str) -> List[str]:
+    # line_to_token :: String -> [Token]
+    def line_to_tokens(self, line : str) -> List[Token]:
         if line == []:
             return []
         end = line.find(' ')
@@ -108,14 +110,17 @@ class Nine_Lexer(object):
         # just one instruction on line
         return self.instruction_to_tokens(line) # last instruction of line
 
-    # returns tokens in a text file
-    def text_to_tokens(self, text : str) -> List[str]:
+    # returns a list of tokens in a text file,
+    #every list of tokens is a line in the text file
+    # text_to_tokens :: String -> [[Token]]
+    def text_to_tokens(self, text : str) -> List[List[Token]]:
         end = text.find('\n')
         if end != -1:
+            # split, this line and next line (without \n)
             line, tail = text[:end], text[end + 1:]
-            #print('tail = ', tail)
             if len(line) == 0 or line[0] == ';':  # commentsymbol or empty ignore line
                 return self.text_to_tokens(tail)
             else:
-                return self.line_to_tokens(line) + [Token('LINE_DOWN', '!')] + self.text_to_tokens(tail)
+                #return self.line_to_tokens(line) + [Token('NEW_LINE', r'\n')] + self.text_to_tokens(tail)
+                return [self.line_to_tokens(line)] + self.text_to_tokens(tail)
         return self.line_to_tokens(text) #last line of text

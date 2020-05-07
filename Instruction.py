@@ -6,5 +6,5 @@ class Instruction(object):
         self.tokens = tokens
 
     def __str__(self) -> str:
-        str_tokens = "".join([str(token) for token in self.tokens])
+        str_tokens = " -> ".join([str(token) for token in self.tokens])
         return 'Instruction [%s]' % str_tokens
