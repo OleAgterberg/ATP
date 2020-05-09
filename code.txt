@@ -1,13 +1,17 @@
-;This is comment can type everything i want like an instruction #a.1
+;This is comment where I can type everything I want, like an instruction #a.1 for example
 ~#loop.1
 ~#a.10
 ~#b.2
+~#c.2
 
-($loop$|1) >$a$ #a-1 ($a$|0) #loop.0 #b.2  >_ >Bad_or_not_Bad
+($c$|0) ($b$|0) end
+($loop$|1) >$a$ #a-1 ($a$|0) #loop.0 #b.2  >_ >Bad_or_not_Bad #c-1
 
-($loop$|0) #word.*
+
+($loop$|0) >Type_here:__* #word.*
 ($loop$|0) ($word$|Bad) >$word$* >_is_Bad !
 ($loop$|0) >$word$* >_is_not_Bad
+
 
 
 ($loop$|0) #b-1 ($b$|0) #loop.1 #a.10 >_ >Counting_down_from_10!

@@ -74,6 +74,7 @@ class Nine_Lexer(object):
             '%'         : 'NOT_MOD',            # Changed !! ->  A%B -> A % B != 0
             ';'         : 'COMMENT',
             '~'         : 'RUN_ONCE',
+            '@'         : 'DEBUG',
         }
 
         if instruction == 'end':
@@ -119,7 +120,7 @@ class Nine_Lexer(object):
             # split, this line and next line (without \n)
             line, tail = text[:end], text[end + 1:]
             if len(line) == 0 or line[0] == ';':  # commentsymbol or empty ignore line
-                return self.text_to_tokens(tail)
+                return [[Token('COMMENT', ';')]] +self.text_to_tokens(tail)
             else:
                 #return self.line_to_tokens(line) + [Token('NEW_LINE', r'\n')] + self.text_to_tokens(tail)
                 return [self.line_to_tokens(line)] + self.text_to_tokens(tail)

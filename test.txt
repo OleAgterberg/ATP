@@ -1,0 +1,13 @@
+; comment sdklfjl;ksajdf kgijfr
+
+~#b.5
+~#a.Hello_World!
+
+#c.*
+#c+1
+
+>$a$
+@
+
+#b-1
+($b$|0) end

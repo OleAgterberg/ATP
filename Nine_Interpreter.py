@@ -10,7 +10,8 @@ instruction_parser = Nine_Instruction_Parser()
 parser = Nine_Parser()
 
 # open file
-file = open(sys.argv[1])
+fname = sys.argv[1]
+file = open(fname)
 text = file.read()
 
 # Difference between the tokens and instructions:
@@ -31,19 +32,47 @@ instructions = instruction_parser.parse(tokens)
 # Every AST is a Instruction on the line.
 # With the function AST.getValue() the Instruction will be executed.
 # parse :: [[Instruction]] -> [[AST]]
-program = parser.parse(instructions)
+program, line = parser.parse(instructions)
+
+if not program:
+    print('Could not parse code at line %d' % line, end =' -> ')
+    [print(i.value, end='') for i in tokens[line-1]]
+    exit(-1)
 
 # The current state with varaibles of the program
 state = {}
 
+
+# new_line :: Dict(str, int) -> Dict(str, int)
+def new_line(state : Dict[str, int]) -> Dict[str, int]:
+    if 'line_number' in state.keys():
+        state['line_number'] += 1
+    else:
+        state['line_number'] = 1
+    return state
+
+# new_instruction :: Dict(str, int) -> Dict(str, int)
+def new_instruction(state : Dict[str, int]) -> Dict[str, int]:
+    if 'instruction_number' in state.keys():
+        state['instruction_number'] += 1
+    else:
+        state['instruction_number'] = 1
+    return state
+
+
 # execute_program :: (Program -> Dict[str, int]) -> (Program -> Dict[str, int])
+# Program = List[Line]
+# line = List[AST]
 def execute_program(program : List[List[AST]], state : Dict[str, int]) -> Tuple[ Union[List[List[AST]], None], Dict[str, int] ]:
     if program == []:
         return [], state
     line, *tail = program
     line, state = execute_line(line, state)
+    state = new_line(state) #add line number for error correction
     if line == None:
         return None, state
+    if 'instruction_number' in state.keys():
+        del state['instruction_number'] #delete instruction number for new line
     if 'line_down' in state.keys():
         del state['line_down']
         # skip next line, but keep it for next loop
@@ -56,17 +85,23 @@ def execute_program(program : List[List[AST]], state : Dict[str, int]) -> Tuple[
     program = [line] + tail
     return program, state
 
+# Function execute a line.
+# When the program gets a ""end"" command it returns None with the current program state
+# Other wise it returns the line for the next round with the current program state
 # execute_line :: (Line -> Dict[str, int]) -> (Line, Dict[str, int])
 def execute_line(line : List[AST], state : Dict[str, int]) -> Tuple[ Union[List[AST], None], Dict[str, int] ]:
     if line == []:
         return [], state
     head, *tail = line
     result, state = head.getValue(state)
+    state = new_instruction(state)
+    if result == None:
+        return None, state
     #print(state)
     if 'end' in state.keys():    	  # End program, return None
         #print('end')
         return None, state
-    if 'run_once' in state.keys():     # execute line but don't this instruction
+    if 'run_once' in state.keys():     # execute line but don't return the run_once instruction
         #print('run_once')
         del state['run_once']
         tail, state = execute_line(tail, state)
@@ -78,12 +113,7 @@ def execute_line(line : List[AST], state : Dict[str, int]) -> Tuple[ Union[List[
     if 'if' in state.keys():           # A%B == 0 or A==B -> if statment if true skip next instructions on the line
         #print('if')
         del state['if']
-        '''
-        if len(tail) > 0:
-            new_tail, state = execute_line(tail[1:], state)
-            return ([head] + [tail[0]] + new_tail, state)
-        '''
-        return line, state # needs to be a instruction after a if statement
+        return line, state # return the line and don't exectur the instruction
 
     if 'print' in state.keys():        # print value
         #print('print')
@@ -94,9 +124,26 @@ def execute_line(line : List[AST], state : Dict[str, int]) -> Tuple[ Union[List[
     return line, state
 
 
-# while program, execute program
-while program and len(program) > 0:
-    program, state = execute_program(program, state)
+try:
+    # while program, execute program
+    while program and len(program) > 0:
+        program, state = execute_program(program, state)
+        if not program and 'end' not in state.keys():
+            raise Exception('')
+        else:
+            del state['line_number']
+except Exception as e:
+    print("\nError at line %d" % state['line_number'])
+    print("On instruction %d" % state['instruction_number'])
+    print('\nEnd of program\nProgram values: ')
+    for key in state.keys():
+        print(' ', key, ' = ', state[key])
+except KeyboardInterrupt:
+    print('\n\nKeyboardInterrupt!')
+    print('Program values: ')
+    for key in state.keys():
+        print(' ', key, ' = ', state[key])
+
 
 
 '''

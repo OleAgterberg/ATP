@@ -42,7 +42,7 @@ class Nine_Instruction_Parser(object):
         if tokens == []:
             return []
         head, *tail = tokens
-        begin_tokens = ['VARIABLE', 'PRINT', 'RUN_ONCE', 'LINE_DOWN', 'END', 'LPAREN']
+        begin_tokens = ['VARIABLE', 'PRINT', 'RUN_ONCE', 'LINE_DOWN', 'END', 'LPAREN', 'DEBUG']
         if head[0].name not in begin_tokens:
             return head + self.parse_begin_instruction(tail)
         else:
@@ -55,7 +55,7 @@ class Nine_Instruction_Parser(object):
         if tokens == []:
             return 0
         head, *tail = tokens
-        begin_tokens = ['VARIABLE', 'PRINT', 'RUN_ONCE', 'LINE_DOWN', 'END', 'LPAREN']
+        begin_tokens = ['VARIABLE', 'PRINT', 'RUN_ONCE', 'LINE_DOWN', 'END', 'LPAREN', 'DEBUG']
         if head[0].name not in begin_tokens:
             return 1 + self.parse_begin_instruction_count(tail)
         else:
@@ -76,8 +76,8 @@ class Nine_Instruction_Parser(object):
     # combine_until_end_instruction :: [Token] -> [Token]
     def combine_until_end_instruction(self, tokens : List[Token]) -> List[Token]:
         if tokens == []:
-            return [] 
-        last_token = ['CALL', 'INTERGER', 'IDENTIFIER', 'INPUT', 'PRINT_WO_NL', 'RPAREN', 'LINE_DOWN', 'END']
+            return []
+        last_token = ['CALL', 'INTERGER', 'IDENTIFIER', 'INPUT', 'PRINT_WO_NL', 'RPAREN', 'LINE_DOWN', 'END', 'DEGUB']
         head, *tail = tokens
         if head.name in last_token:
             return [head]
