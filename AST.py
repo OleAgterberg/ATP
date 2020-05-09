@@ -80,6 +80,8 @@ def assign (    left: Union[Node, None],
             ) -> Tuple[Union[str, int, None], Dict[str, int]]:
     try:
         rValue, program = right.getValue(program)
+        if not rValue:
+            raise Exception('')
         name = left.name
         program[name] = rValue
         return (rValue, program)
@@ -93,9 +95,14 @@ def my_print (  left: Union[Node, None],
             ) -> Tuple[Union[str, int, None], Dict[str, int]]:
     try:
         rValue, program = right.getValue(program)
+        if not rValue:
+            raise Exception('')
         value = str(rValue)
-        program['print'] = value
-        return (right, program)
+        if 'print' in program.keys():
+            program['print'] += value
+        else:
+            program['print'] = value
+        return ('print', program)
     except Exception as e:
         return (None, program)
 
@@ -105,9 +112,14 @@ def my_print_ln (   left: Union[Node, None],
             ) -> Tuple[Union[str, int, None], Dict[str, int]]:
     try:
         rValue, program = right.getValue(program)
+        if not rValue:
+            raise Exception('')
         value = str(rValue)
-        program['print'] = value + '\n'
-        return (right, program)
+        if 'print' in program.keys():
+            program['print'] += value + '\n'
+        else:
+            program['print'] = value + '\n'
+        return ('print', program)
     except Exception as e:
         return (None, program)
 
@@ -190,5 +202,23 @@ def line_down (  left: Union[Node, None],
     try:
         program['line_down'] = 1
         return ('line_down', program)
+    except Exception as e:
+        return (None, program)
+
+def empty (  left: Union[Node, None],
+                right: Union[Node, None],
+                program: Dict[str, int]
+            ) -> Tuple[Union[str, int, None], Dict[str, int]]:
+    return ('empty', program)
+
+def debug (  left: Union[Node, None],
+                right: Union[Node, None],
+                program: Dict[str, int]
+            ) -> Tuple[Union[str, int, None], Dict[str, int]]:
+    try:
+        cur_values = '# DEBUG: Current program state '
+        cur_values += str( ["Variable: %s = %s" % (str(key), str(program[key])) for key in program.keys()] )
+        program['print'] = cur_values + '\n'
+        return ('debug', program)
     except Exception as e:
         return (None, program)
